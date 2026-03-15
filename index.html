@@ -4,6 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>Grade Engine — Final HTML</title>
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <style>
   :root{
     --bg:#000;
@@ -91,7 +97,7 @@
     padding-right:6px;
   }
 
-  /* Each row uses same grid (no horizontal scroll). Assignment input is smaller (Option 2: small) */
+  /* Each row uses same grid (no horizontal scroll) */
   .row{
     display:grid;
     grid-template-columns: 42% 20% 14% 14% 10%;
@@ -104,7 +110,6 @@
     box-sizing:border-box;
   }
 
-  /* assignment input: smaller, will truncate long names visually (no horizontal scrolling) */
   .assign{
     width:100%;
     padding:8px 10px;
@@ -139,7 +144,7 @@
     max-width:100%;
   }
 
-  input.pts{ max-width:110px } /* ensures 3 digits fit */
+  input.pts{ max-width:110px }
 
   .remove-wrap{ display:flex; align-items:center; justify-content:center; }
   button.remove{
@@ -211,6 +216,11 @@
     <button id="addBtn" class="primary" aria-label="Add assignment">＋ Add Assignment</button>
     <button id="calcBtn" class="primary" aria-label="Calculate grade">🧮 Calculate Grade</button>
 
+    <!-- New PWA PowerSchool button -->
+    <button class="primary" onclick="window.open('https://YOUR-SCHOOL.powerschool.com', '_blank')">
+      Import from PowerSchool
+    </button>
+
     <div class="seg" role="toolbar" aria-label="Data tools">
       <button id="exportBtn">Export</button>
       <button id="importBtn">Import (Files)</button>
@@ -219,31 +229,19 @@
 
     <div id="result" class="result" aria-live="polite"></div>
 
-    <!-- native file input used to open Files.app on iOS / Android -->
     <input id="filePicker" type="file" accept=".json,application/json" style="display:none" />
   </div>
 
 <script>
-/* Full single-file JS:
-   - assignment input reduced in width (Option 2)
-   - uses same grid columns for header and rows
-   - no horizontal scroll (row elements don't expand)
-   - import via real file picker (Files app)
-   - export creates downloadable json
-   - delete button centered and not cut off
-   - simple normalize import to accept various json shapes
-*/
-
+/* Full JS (same as your current engine) */
 const rowsEl = document.getElementById('rows');
 const filePicker = document.getElementById('filePicker');
 const resultEl = document.getElementById('result');
 
 let assignments = [];
 
-/* small haptic helper */
 function vib(ms=20){ if(navigator.vibrate) navigator.vibrate(ms); }
 
-/* render the rows using same grid template as header */
 function render(){
   rowsEl.innerHTML = '';
   assignments.forEach((a, i)=>{
@@ -266,17 +264,15 @@ function render(){
   attachListeners();
 }
 
-/* escape helper */
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* attach input & remove listeners */
 function attachListeners(){
   rowsEl.querySelectorAll('input[data-i], select[data-i]').forEach(el=>{
-    el.oninput = (e)=>{
+    el.oninput = ()=> {
       const i = Number(el.dataset.i);
       const f = el.dataset.field;
       if(!Number.isFinite(i) || i<0 || i>=assignments.length) return;
-      const val = (f==='score' || f==='pts') ? (el.value === '' ? '' : Number(el.value)) : el.value;
+      const val = (f==='score'||f==='pts')?(el.value===''?'':Number(el.value)):el.value;
       assignments[i][f] = val;
     };
   });
@@ -291,20 +287,17 @@ function attachListeners(){
   });
 }
 
-/* add initial demo rows */
 assignments.push({name:'Sample Test', category:'Test', score:92, pts:100});
 assignments.push({name:'Signed Quiz', category:'Quiz', score:20, pts:20});
 render();
 
-/* add assignment */
 document.getElementById('addBtn').addEventListener('click', ()=>{
   assignments.push({name:'', category:'Classwork', score:'', pts:''});
   render();
-  setTimeout(()=> rowsEl.scrollTop = rowsEl.scrollHeight, 120);
+  setTimeout(()=> rowsEl.scrollTop = rowsEl.scrollHeight,120);
   vib(14);
 });
 
-/* calculate grade (PowerSchool-like): category averages, apply active weights */
 document.getElementById('calcBtn').addEventListener('click', ()=>{
   const weights = {
     Test: (Number(document.getElementById('testW').value)||0)/100,
@@ -314,7 +307,7 @@ document.getElementById('calcBtn').addEventListener('click', ()=>{
   };
   const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
   assignments.forEach(a=>{
-    const c = a.category || 'Classwork';
+    const c = a.category||'Classwork';
     const e = Number(a.score)||0;
     const p = Number(a.pts)||0;
     totals[c].e += e;
@@ -333,7 +326,6 @@ document.getElementById('calcBtn').addEventListener('click', ()=>{
   vib(12);
 });
 
-/* export class JSON (download) */
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   const payload = {
     name: document.getElementById('className').value || '',
@@ -345,77 +337,60 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
     },
     assignments
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (payload.name || 'class') + '.json';
+  a.download = (payload.name||'class')+'.json';
   a.click();
   URL.revokeObjectURL(url);
   vib(10);
 });
 
-/* open native file picker (Files app) */
-document.getElementById('importBtn').addEventListener('click', ()=> filePicker.click());
+document.getElementById('importBtn').addEventListener('click', ()=>filePicker.click());
 
-filePicker.addEventListener('change', (ev)=>{
-  const f = ev.target.files[0];
-  if(!f) return;
+filePicker.addEventListener('change',(ev)=>{
+  const f = ev.target.files[0]; if(!f)return;
   const reader = new FileReader();
-  reader.onload = e=>{
+  reader.onload=e=>{
     try{
-      const data = JSON.parse(e.target.result);
-      // Accept several shapes:
+      const data=JSON.parse(e.target.result);
       if(Array.isArray(data)){
         assignments = data.map(normalize);
-      } else {
-        assignments = Array.isArray(data.assignments) ? data.assignments.map(normalize) : [];
-        if(data.name) document.getElementById('className').value = data.name;
+      }else{
+        assignments = Array.isArray(data.assignments)?data.assignments.map(normalize):[];
+        if(data.name)document.getElementById('className').value=data.name;
         if(data.weights){
-          document.getElementById('testW').value = data.weights.Test || document.getElementById('testW').value;
-          document.getElementById('quizW').value = data.weights.Quiz || document.getElementById('quizW').value;
-          document.getElementById('cwW').value = data.weights.Classwork || document.getElementById('cwW').value;
-          document.getElementById('hwW').value = data.weights.Homework || document.getElementById('hwW').value;
-        } else {
-          if(data.test !== undefined) document.getElementById('testW').value = data.test;
-          if(data.quiz !== undefined) document.getElementById('quizW').value = data.quiz;
-          if(data.cw !== undefined) document.getElementById('cwW').value = data.cw;
-          if(data.hw !== undefined) document.getElementById('hwW').value = data.hw;
+          document.getElementById('testW').value=data.weights.Test||document.getElementById('testW').value;
+          document.getElementById('quizW').value=data.weights.Quiz||document.getElementById('quizW').value;
+          document.getElementById('cwW').value=data.weights.Classwork||document.getElementById('cwW').value;
+          document.getElementById('hwW').value=data.weights.Homework||document.getElementById('hwW').value;
         }
       }
-      render();
-      resultEl.innerHTML = `Imported ${assignments.length} assignments`;
-      vib(18);
-    }catch(err){
-      alert('Import failed: invalid JSON');
-      console.error(err);
-    } finally { filePicker.value = ''; }
+      render(); resultEl.innerHTML=`Imported ${assignments.length} assignments`; vib(18);
+    }catch(err){ alert('Import failed: invalid JSON'); console.error(err); }
+    finally{ filePicker.value=''; }
   };
   reader.readAsText(f);
 });
 
-/* normalize many possible assignment keys to our internal shape */
 function normalize(item){
-  if(!item) return {name:'',category:'Classwork',score:'',pts:''};
-  const name = item.name ?? item.assignment ?? item.title ?? '';
-  const category = item.category ?? item.type ?? item.cat ?? 'Classwork';
-  const score = item.score ?? item.earned ?? item.e ?? '';
-  const pts = item.pts ?? item.points ?? item.total ?? item.possible ?? '';
-  return { name:String(name), category:String(category), score: (score === '' ? '' : Number(score)), pts: (pts === '' ? '' : Number(pts)) };
+  if(!item)return{name:'',category:'Classwork',score:'',pts:''};
+  const name = item.name??item.assignment??item.title??'';
+  const category = item.category??item.type??item.cat??'Classwork';
+  const score = item.score??item.earned??item.e??'';
+  const pts = item.pts??item.points??item.total??item.possible??'';
+  return{name:String(name),category:String(category),score:(score===''?'':Number(score)),pts:(pts===''?'':Number(pts))};
 }
 
-/* clear all with confirm */
-document.getElementById('clearBtn').addEventListener('click', ()=>{
-  if(!confirm('Clear class name, weights, and all assignments?')) return;
-  assignments = [];
-  document.getElementById('className').value = '';
-  document.getElementById('testW').value = '';
-  document.getElementById('quizW').value = '';
-  document.getElementById('cwW').value = '';
-  document.getElementById('hwW').value = '';
-  render();
-  resultEl.innerHTML = 'Cleared';
-  vib(12);
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(!confirm('Clear class name, weights, and all assignments?'))return;
+  assignments=[]; document.getElementById('className').value='';
+  document.getElementById('testW').value='';
+  document.getElementById('quizW').value='';
+  document.getElementById('cwW').value='';
+  document.getElementById('hwW').value='';
+  render(); resultEl.innerHTML='Cleared'; vib(12);
 });
 </script>
 </body>
