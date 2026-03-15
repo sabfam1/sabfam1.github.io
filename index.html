@@ -3,51 +3,75 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>Grade Engine — Multi-Class Compact</title>
+<title>Grade Engine — Multi-Class</title>
 <style>
 :root{
   --bg:#000; --card:#0f1113; --panel:#151619; --muted:#94a3b8;
   --text:#fff; --blue:#0a84ff; --danger:#ff3b30; --input:#1e2023; --border:rgba(255,255,255,0.06);
-  --radius:12px;
+  --radius:14px;
 }
 html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Segoe UI,Roboto,Arial;color:var(--text);-webkit-font-smoothing:antialiased}
-body{display:flex;justify-content:center;padding:10px;box-sizing:border-box}
-
+body{display:flex;justify-content:center;padding:18px;box-sizing:border-box}
 .card{
-  width:100%; max-width:360px;
+  width:100%; max-width:432px;
   background:linear-gradient(180deg,var(--card),#0b0d0f);
-  border-radius:16px;
-  padding:12px;
-  box-sizing:border-box;
-  box-shadow:0 10px 25px rgba(0,0,0,0.5);
+  border-radius:18px; padding:18px; box-sizing:border-box;
+  box-shadow:0 12px 30px rgba(0,0,0,0.6);
 }
-
-h1{margin:0;text-align:center;color:var(--blue);font-size:20px;font-weight:700}
-.spacer{height:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-input[type="text"], input[type="number"], select, button{font-family:inherit;font-size:14px;color:var(--text);}
-.field{ margin-top:8px }
-.field input[type="text"]{ width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);box-sizing:border-box;-webkit-appearance:none;}
-.weights{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
-.weights .col input[type="number"]{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);box-sizing:border-box;}
-.header-row{display:grid;grid-template-columns: 45% 20% 12% 12% 11%;gap:4px;margin-top:10px;align-items:center;}
-.th{background:var(--blue);padding:6px 4px;border-radius:8px;text-align:center;font-size:12px;color:#fff;}
-.rows{margin-top:8px;max-height:300px;overflow:auto;padding-right:4px;}
-.row{display:grid;grid-template-columns: 42% 20% 12% 12% 14%;gap:4px;background:var(--panel);border-radius:10px;padding:6px;align-items:center;margin-bottom:6px;box-sizing:border-box;}
-.assign{width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;}
-select.cat{padding:6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);box-sizing:border-box;width:100%;}
-input.score, input.pts{padding:6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);text-align:center;box-sizing:border-box;max-width:100%;}
-input.pts{ max-width:90px }
+h1{margin:0;text-align:center;color:var(--blue);font-size:22px;font-weight:700}
+.spacer{height:14px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input[type="text"], input[type="number"], select, button{font-family:inherit;font-size:15px;color:var(--text);}
+.field{ margin-top:10px }
+.field input[type="text"]{
+  width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--input);box-sizing:border-box;-webkit-appearance:none;
+}
+.weights{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.weights .col input[type="number"]{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--input);box-sizing:border-box;}
+.header-row{display:grid;grid-template-columns: 50% 20% 14% 11% 5%;gap:6px;margin-top:14px;align-items:center;}
+.th{background:var(--blue);padding:8px 6px;border-radius:10px;text-align:center;font-size:13px;color:#fff;}
+.rows{margin-top:10px;max-height:380px;overflow:auto;padding-right:6px;}
+.row{display:grid;grid-template-columns: 42% 20% 14% 14% 10%;gap:6px;background:var(--panel);border-radius:12px;padding:8px;align-items:center;margin-bottom:8px;box-sizing:border-box;}
+.assign{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;}
+select.cat{padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);box-sizing:border-box;width:100%;}
+input.score, input.pts{padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);text-align:center;box-sizing:border-box;max-width:100%;}
+input.pts{ max-width:110px }
 .remove-wrap{ display:flex; align-items:center; justify-content:center; }
-button.remove{ width:32px; height:32px; border-radius:8px; border:none; background:var(--danger); color:#fff; font-size:16px; cursor:pointer;}
-.primary{width:100%;padding:10px;margin-top:10px;border-radius:12px;border:none;font-weight:700;background:var(--blue);color:#fff;font-size:14px;cursor:pointer;}
-.seg{ display:flex; gap:8px; margin-top:10px; }
-.seg button{ flex:1; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--text); font-weight:600; cursor:pointer; }
-.result{ margin-top:10px; color:var(--muted); font-size:13px }
+button.remove{ width:40px; height:36px; border-radius:10px; border:none; background:var(--danger); color:#fff; font-size:18px; cursor:pointer;}
+.primary{width:100%;padding:14px;margin-top:12px;border-radius:14px;border:none;font-weight:700;background:var(--blue);color:#fff;font-size:16px;cursor:pointer;}
+.seg{ display:flex; gap:10px; margin-top:12px; }
+.seg button{ flex:1; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--text); font-weight:600; cursor:pointer; }
+.result{ margin-top:12px; color:var(--muted); font-size:14px }
+@media (max-width:380px){ .row, .header-row { grid-template-columns:46% 20% 12% 12% 10%; } }
 
-/* Class selector */
-.class-select { width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--text); font-size:14px; appearance:none; cursor:pointer; background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; padding-right:30px;}
-.class-select:hover, .class-select:focus{border-color: var(--blue); background:#1f2226; outline:none;}
+/* Class selector styling */
+.class-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+}
+.class-select:hover,
+.class-select:focus {
+  border-color: var(--blue);
+  outline: none;
+  background: #1f2226;
+}
 </style>
 </head>
 <body>
@@ -55,10 +79,11 @@ button.remove{ width:32px; height:32px; border-radius:8px; border:none; backgrou
   <h1>📘 Grade Engine</h1>
   <div class="spacer"></div>
 
+  <!-- Class selector container -->
   <div id="classSelectContainer" class="field" style="display:none;">
     <label for="classSelect">Select Class</label>
     <select id="classSelect" class="class-select"></select>
-    <button id="deleteClassBtn" style="margin-top:4px;padding:6px 10px;border-radius:10px;background:var(--danger);border:none;color:#fff;cursor:pointer;">Delete Class</button>
+    <button id="deleteClassBtn" style="margin-top:6px;padding:6px 10px;border-radius:10px;background:var(--danger);border:none;color:#fff;cursor:pointer;">Delete Class</button>
   </div>
 
   <div class="field">
@@ -110,7 +135,6 @@ button.remove{ width:32px; height:32px; border-radius:8px; border:none; backgrou
 </div>
 
 <script>
-// Core logic (same as before, fully functional)
 const rowsEl = document.getElementById('rows');
 const filePicker = document.getElementById('filePicker');
 const resultEl = document.getElementById('result');
@@ -123,7 +147,7 @@ let classes = [];
 let currentClassIndex = 0;
 let assignments = [];
 
-// Demo class blank name
+// Demo class with blank name
 classes.push({
   name: "",
   weights: {Test:60,Quiz:20,Classwork:10,Homework:10},
@@ -196,17 +220,22 @@ function updateClassSelector(){
       opt.textContent = displayName;
       classSelect.appendChild(opt);
     });
+    // Select current class if possible
     const idxInSelector = visibleClasses.indexOf(classes[currentClassIndex]);
     if(idxInSelector >=0) classSelect.selectedIndex = idxInSelector;
-  } else classSelectContainer.style.display = 'none';
+  } else {
+    classSelectContainer.style.display = 'none';
+  }
 }
 
+// Switch class
 classSelect.addEventListener('change',()=>{
   let visibleClasses = classes.filter(c=>!c.hideFromSelector);
   currentClassIndex = classes.indexOf(visibleClasses[classSelect.selectedIndex]);
   loadCurrentClass();
 });
 
+// Load current class into UI
 function loadCurrentClass(){
   const c = classes[currentClassIndex];
   assignments = c.assignments.map(a=>({...a}));
@@ -324,8 +353,8 @@ deleteClassBtn.addEventListener('click',()=>{
   loadCurrentClass();
 });
 
-// Open PowerSchool
-openPSBtn.addEventListener('click',()=> window.open('https://hillelyeshiva.powerschool.com','_blank'));
+// PowerSchool button
+openPSBtn.addEventListener('click',()=> window.open('https://YOUR-SCHOOL.powerschool.com','_blank'));
 
 renderRows();
 updateClassSelector();
