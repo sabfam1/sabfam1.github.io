@@ -28,7 +28,7 @@
   body{display:flex;justify-content:center;padding:18px;box-sizing:border-box}
 
   .card{
-    width:100%; max-width:432px;  /* fitted for iPhone 15 Pro Max */
+    width:100%; max-width:432px;
     background:linear-gradient(180deg,var(--card),#0b0d0f);
     border-radius:18px;
     padding:18px;
@@ -72,7 +72,6 @@
     box-sizing:border-box;
   }
 
-  /* Header row - visual only; columns widths must match rows */
   .header-row{
     display:grid;
     grid-template-columns: 50% 20% 14% 11% 5%;
@@ -89,7 +88,6 @@
     color:#fff;
   }
 
-  /* rows container - vertical scroll only (no horizontal) */
   .rows{
     margin-top:10px;
     max-height:380px;
@@ -97,7 +95,6 @@
     padding-right:6px;
   }
 
-  /* Each row uses same grid (no horizontal scroll) */
   .row{
     display:grid;
     grid-template-columns: 42% 20% 14% 14% 10%;
@@ -216,8 +213,8 @@
     <button id="addBtn" class="primary" aria-label="Add assignment">＋ Add Assignment</button>
     <button id="calcBtn" class="primary" aria-label="Calculate grade">🧮 Calculate Grade</button>
 
-    <!-- New PWA PowerSchool button -->
-    <button class="primary" onclick="window.open('https://YOUR-SCHOOL.powerschool.com', '_blank')">
+    <!-- Import from PowerSchool button (added here) -->
+    <button class="primary" onclick="window.open('https://YOUR-SCHOOL.powerschool.com','_blank')">
       Import from PowerSchool
     </button>
 
@@ -228,12 +225,11 @@
     </div>
 
     <div id="result" class="result" aria-live="polite"></div>
-
     <input id="filePicker" type="file" accept=".json,application/json" style="display:none" />
   </div>
 
 <script>
-/* Full JS (same as your current engine) */
+/* JS same as before (assignment management, calculate, import/export) */
 const rowsEl = document.getElementById('rows');
 const filePicker = document.getElementById('filePicker');
 const resultEl = document.getElementById('result');
@@ -243,11 +239,11 @@ let assignments = [];
 function vib(ms=20){ if(navigator.vibrate) navigator.vibrate(ms); }
 
 function render(){
-  rowsEl.innerHTML = '';
-  assignments.forEach((a, i)=>{
-    const div = document.createElement('div');
-    div.className = 'row';
-    div.innerHTML = `
+  rowsEl.innerHTML='';
+  assignments.forEach((a,i)=>{
+    const div=document.createElement('div');
+    div.className='row';
+    div.innerHTML=`
       <input class="assign" data-i="${i}" data-field="name" value="${escapeHtml(a.name)}" />
       <select class="cat" data-i="${i}" data-field="category">
         <option ${a.category==='Test'?'selected':''}>Test</option>
@@ -268,17 +264,17 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,
 
 function attachListeners(){
   rowsEl.querySelectorAll('input[data-i], select[data-i]').forEach(el=>{
-    el.oninput = ()=> {
-      const i = Number(el.dataset.i);
-      const f = el.dataset.field;
-      if(!Number.isFinite(i) || i<0 || i>=assignments.length) return;
-      const val = (f==='score'||f==='pts')?(el.value===''?'':Number(el.value)):el.value;
-      assignments[i][f] = val;
+    el.oninput=()=>{
+      const i=Number(el.dataset.i);
+      const f=el.dataset.field;
+      if(!Number.isFinite(i)||i<0||i>=assignments.length) return;
+      const val=(f==='score'||f==='pts')?(el.value===''?'':Number(el.value)):el.value;
+      assignments[i][f]=val;
     };
   });
   rowsEl.querySelectorAll('button.remove').forEach(btn=>{
-    btn.onclick = ()=>{
-      const i = Number(btn.dataset.i);
+    btn.onclick=()=>{
+      const i=Number(btn.dataset.i);
       if(!confirm('Remove this assignment?')) return;
       assignments.splice(i,1);
       render();
@@ -294,54 +290,54 @@ render();
 document.getElementById('addBtn').addEventListener('click', ()=>{
   assignments.push({name:'', category:'Classwork', score:'', pts:''});
   render();
-  setTimeout(()=> rowsEl.scrollTop = rowsEl.scrollHeight,120);
+  setTimeout(()=>rowsEl.scrollTop=rowsEl.scrollHeight,120);
   vib(14);
 });
 
 document.getElementById('calcBtn').addEventListener('click', ()=>{
-  const weights = {
-    Test: (Number(document.getElementById('testW').value)||0)/100,
-    Quiz: (Number(document.getElementById('quizW').value)||0)/100,
-    Classwork: (Number(document.getElementById('cwW').value)||0)/100,
-    Homework: (Number(document.getElementById('hwW').value)||0)/100
+  const weights={
+    Test:(Number(document.getElementById('testW').value)||0)/100,
+    Quiz:(Number(document.getElementById('quizW').value)||0)/100,
+    Classwork:(Number(document.getElementById('cwW').value)||0)/100,
+    Homework:(Number(document.getElementById('hwW').value)||0)/100
   };
-  const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
+  const totals={Test:{e:0,p:0},Quiz:{e:0,p:0},Classwork:{e:0,p:0},Homework:{e:0,p:0}};
   assignments.forEach(a=>{
-    const c = a.category||'Classwork';
-    const e = Number(a.score)||0;
-    const p = Number(a.pts)||0;
-    totals[c].e += e;
-    totals[c].p += p;
+    const c=a.category||'Classwork';
+    const e=Number(a.score)||0;
+    const p=Number(a.pts)||0;
+    totals[c].e+=e;
+    totals[c].p+=p;
   });
   let weighted=0,active=0;
-  const parts = [];
+  const parts=[];
   ['Test','Quiz','Classwork','Homework'].forEach(cat=>{
-    const t = totals[cat];
-    const avg = t.p>0 ? (t.e/t.p)*100 : 0;
-    if(t.p>0){ weighted += avg * (weights[cat]||0); active += (weights[cat]||0); }
+    const t=totals[cat];
+    const avg=t.p>0?(t.e/t.p)*100:0;
+    if(t.p>0){weighted+=avg*(weights[cat]||0);active+=(weights[cat]||0);}
     parts.push(`${cat}: ${avg.toFixed(2)}% (${t.e}/${t.p})`);
   });
-  const final = active>0 ? (weighted/active) : 0;
-  resultEl.innerHTML = parts.join('<br>') + `<hr><strong>Final: ${final.toFixed(2)}%</strong>`;
+  const final=active>0?(weighted/active):0;
+  resultEl.innerHTML=parts.join('<br>')+`<hr><strong>Final: ${final.toFixed(2)}%</strong>`;
   vib(12);
 });
 
 document.getElementById('exportBtn').addEventListener('click', ()=>{
-  const payload = {
-    name: document.getElementById('className').value || '',
-    weights: {
-      Test: Number(document.getElementById('testW').value)||0,
-      Quiz: Number(document.getElementById('quizW').value)||0,
-      Classwork: Number(document.getElementById('cwW').value)||0,
-      Homework: Number(document.getElementById('hwW').value)||0
+  const payload={
+    name:document.getElementById('className').value||'',
+    weights:{
+      Test:Number(document.getElementById('testW').value)||0,
+      Quiz:Number(document.getElementById('quizW').value)||0,
+      Classwork:Number(document.getElementById('cwW').value)||0,
+      Homework:Number(document.getElementById('hwW').value)||0
     },
     assignments
   };
-  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = (payload.name||'class')+'.json';
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=(payload.name||'class')+'.json';
   a.click();
   URL.revokeObjectURL(url);
   vib(10);
@@ -350,15 +346,14 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
 document.getElementById('importBtn').addEventListener('click', ()=>filePicker.click());
 
 filePicker.addEventListener('change',(ev)=>{
-  const f = ev.target.files[0]; if(!f)return;
-  const reader = new FileReader();
+  const f=ev.target.files[0]; if(!f)return;
+  const reader=new FileReader();
   reader.onload=e=>{
     try{
       const data=JSON.parse(e.target.result);
-      if(Array.isArray(data)){
-        assignments = data.map(normalize);
-      }else{
-        assignments = Array.isArray(data.assignments)?data.assignments.map(normalize):[];
+      if(Array.isArray(data)){ assignments=data.map(normalize); }
+      else{
+        assignments=Array.isArray(data.assignments)?data.assignments.map(normalize):[];
         if(data.name)document.getElementById('className').value=data.name;
         if(data.weights){
           document.getElementById('testW').value=data.weights.Test||document.getElementById('testW').value;
@@ -368,28 +363,26 @@ filePicker.addEventListener('change',(ev)=>{
         }
       }
       render(); resultEl.innerHTML=`Imported ${assignments.length} assignments`; vib(18);
-    }catch(err){ alert('Import failed: invalid JSON'); console.error(err); }
-    finally{ filePicker.value=''; }
+    }catch(err){alert('Import failed: invalid JSON');console.error(err);}
+    finally{filePicker.value='';}
   };
   reader.readAsText(f);
 });
 
 function normalize(item){
   if(!item)return{name:'',category:'Classwork',score:'',pts:''};
-  const name = item.name??item.assignment??item.title??'';
-  const category = item.category??item.type??item.cat??'Classwork';
-  const score = item.score??item.earned??item.e??'';
-  const pts = item.pts??item.points??item.total??item.possible??'';
+  const name=item.name??item.assignment??item.title??'';
+  const category=item.category??item.type??item.cat??'Classwork';
+  const score=item.score??item.earned??item.e??'';
+  const pts=item.pts??item.points??item.total??item.possible??'';
   return{name:String(name),category:String(category),score:(score===''?'':Number(score)),pts:(pts===''?'':Number(pts))};
 }
 
-document.getElementById('clearBtn').addEventListener('click',()=>{
-  if(!confirm('Clear class name, weights, and all assignments?'))return;
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(!confirm('Clear class name, weights, and all assignments?')) return;
   assignments=[]; document.getElementById('className').value='';
-  document.getElementById('testW').value='';
-  document.getElementById('quizW').value='';
-  document.getElementById('cwW').value='';
-  document.getElementById('hwW').value='';
+  document.getElementById('testW').value=''; document.getElementById('quizW').value='';
+  document.getElementById('cwW').value=''; document.getElementById('hwW').value='';
   render(); resultEl.innerHTML='Cleared'; vib(12);
 });
 </script>
