@@ -147,7 +147,7 @@ let classes = [];
 let currentClassIndex = 0;
 let assignments = [];
 
-// Demo class
+// Demo class with blank name
 classes.push({
   name: "",
   weights: {Test:60,Quiz:20,Classwork:10,Homework:10},
@@ -252,7 +252,7 @@ document.getElementById('addBtn').addEventListener('click',()=>{
   vib(14);
 });
 
-// ✅ Calculate grade — blank scores are ignored
+// **CALCULATE GRADE — IGNORE BLANKS**
 document.getElementById('calcBtn').addEventListener('click',()=>{
   const weights = {
     Test: Number(document.getElementById('testW').value)/100,
@@ -260,25 +260,28 @@ document.getElementById('calcBtn').addEventListener('click',()=>{
     Classwork: Number(document.getElementById('cwW').value)/100,
     Homework: Number(document.getElementById('hwW').value)/100
   };
+
   const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
-  
+
   assignments.forEach(a=>{
     const c = a.category || 'Classwork';
-    if(a.score === '' || a.pts === '' || a.pts == 0) return; // skip blank or 0-pt assignments
-    const e = Number(a.score);
-    const p = Number(a.pts);
-    totals[c].e += e;
-    totals[c].p += p;
+    if(a.score !== '' && a.pts !== ''){
+      const e = Number(a.score);
+      const p = Number(a.pts);
+      totals[c].e += e;
+      totals[c].p += p;
+    }
   });
 
-  let weighted=0, active=0;
+  let weighted=0,active=0;
   const parts = [];
   ['Test','Quiz','Classwork','Homework'].forEach(cat=>{
     const t = totals[cat];
-    if(t.p === 0) return; // skip empty categories
-    const avg = (t.e / t.p) * 100;
-    weighted += avg * (weights[cat]||0);
-    active += (weights[cat]||0);
+    const avg = t.p>0 ? (t.e/t.p)*100 : 0;
+    if(t.p>0){
+      weighted += avg*(weights[cat]||0);
+      active += (weights[cat]||0);
+    }
     parts.push(`${cat}: ${avg.toFixed(2)}% (${t.e}/${t.p})`);
   });
 
