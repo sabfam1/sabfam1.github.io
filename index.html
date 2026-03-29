@@ -180,8 +180,8 @@ function renderRows(){
         <option ${a.category==='Classwork'?'selected':''}>Classwork</option>
         <option ${a.category==='Homework'?'selected':''}>Homework</option>
       </select>
-      <input class="score" data-i="${i}" data-field="score" type="number" min="0" inputmode="numeric" value="${a.score===undefined?'':a.score}" />
-      <input class="pts" data-i="${i}" data-field="pts" type="number" min="0" max="999" inputmode="numeric" value="${a.pts===undefined?'':a.pts}" />
+      <input class="score" data-i="${i}" data-field="score" type="number" min="0" inputmode="numeric" value="${a.score===undefined||a.score===null?'':a.score}" />
+      <input class="pts" data-i="${i}" data-field="pts" type="number" min="0" max="999" inputmode="numeric" value="${a.pts===undefined||a.pts===null?'':a.pts}" />
       <div class="remove-wrap"><button class="remove" data-i="${i}">✕</button></div>
     `;
     rowsEl.appendChild(div);
@@ -220,6 +220,7 @@ function updateClassSelector(){
       opt.textContent = displayName;
       classSelect.appendChild(opt);
     });
+    // Select current class if possible
     const idxInSelector = visibleClasses.indexOf(classes[currentClassIndex]);
     if(idxInSelector >=0) classSelect.selectedIndex = idxInSelector;
   } else {
@@ -227,12 +228,14 @@ function updateClassSelector(){
   }
 }
 
+// Switch class
 classSelect.addEventListener('change',()=>{
   let visibleClasses = classes.filter(c=>!c.hideFromSelector);
   currentClassIndex = classes.indexOf(visibleClasses[classSelect.selectedIndex]);
   loadCurrentClass();
 });
 
+// Load current class into UI
 function loadCurrentClass(){
   const c = classes[currentClassIndex];
   assignments = c.assignments.map(a=>({...a}));
@@ -245,6 +248,7 @@ function loadCurrentClass(){
   updateClassSelector();
 }
 
+// Add assignment
 document.getElementById('addBtn').addEventListener('click',()=>{
   assignments.push({name:'', category:'Classwork', score:'', pts:''});
   renderRows();
@@ -252,7 +256,7 @@ document.getElementById('addBtn').addEventListener('click',()=>{
   vib(14);
 });
 
-// **CALCULATE GRADE — IGNORE BLANKS**
+// Calculate grade
 document.getElementById('calcBtn').addEventListener('click',()=>{
   const weights = {
     Test: Number(document.getElementById('testW').value)/100,
@@ -260,36 +264,27 @@ document.getElementById('calcBtn').addEventListener('click',()=>{
     Classwork: Number(document.getElementById('cwW').value)/100,
     Homework: Number(document.getElementById('hwW').value)/100
   };
-
   const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
-
   assignments.forEach(a=>{
     const c = a.category || 'Classwork';
-    if(a.score !== '' && a.pts !== ''){
-      const e = Number(a.score);
-      const p = Number(a.pts);
-      totals[c].e += e;
-      totals[c].p += p;
-    }
+    const e = a.score===''||a.score==null ? null : Number(a.score);
+    const p = a.pts===''||a.pts==null ? null : Number(a.pts);
+    if(e!==null && p!==null) { totals[c].e += e; totals[c].p += p; }
   });
-
   let weighted=0,active=0;
   const parts = [];
   ['Test','Quiz','Classwork','Homework'].forEach(cat=>{
     const t = totals[cat];
     const avg = t.p>0 ? (t.e/t.p)*100 : 0;
-    if(t.p>0){
-      weighted += avg*(weights[cat]||0);
-      active += (weights[cat]||0);
-    }
+    if(t.p>0){ weighted += avg*(weights[cat]||0); active += (weights[cat]||0); }
     parts.push(`${cat}: ${avg.toFixed(2)}% (${t.e}/${t.p})`);
   });
-
   const final = active>0 ? (weighted/active) : 0;
   resultEl.innerHTML = parts.join('<br>') + `<hr><strong>Final: ${final.toFixed(2)}%</strong>`;
   vib(12);
 });
 
+// Export
 document.getElementById('exportBtn').addEventListener('click',()=>{
   const c = classes[currentClassIndex];
   c.name = document.getElementById('className').value;
@@ -307,6 +302,7 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.click();
 });
 
+// Clear
 document.getElementById('clearBtn').addEventListener('click',()=>{
   if(!confirm('Clear all assignments and reset weights for this class?')) return;
   assignments = [];
@@ -318,6 +314,7 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
   resultEl.innerHTML = 'Cleared';
 });
 
+// Import
 document.getElementById('importBtn').addEventListener('click',()=> filePicker.click());
 filePicker.addEventListener('change', (ev)=>{
   const files = Array.from(ev.target.files);
@@ -330,33 +327,25 @@ filePicker.addEventListener('change', (ev)=>{
         let newClass = {
           name: data.name || '',
           weights: data.weights || {Test:60,Quiz:20,Classwork:10,Homework:10},
-          assignments: data.assignments.map(a=>({...a})),
-          hideFromSelector: false
+          assignments: data.assignments.map(a=>({
+            ...a,
+            score: a.score===null ? '' : a.score,
+            pts: a.pts===null ? '' : a.pts
+          })),
+          hideFromSelector:false
         };
         classes.push(newClass);
-      } catch(err){console.error(err);}
+        currentClassIndex = classes.length-1;
+        loadCurrentClass();
+        vib(20);
+      }catch(err){ alert('Invalid JSON'); console.error(err); }
     };
     reader.readAsText(f);
   });
-  setTimeout(()=>{
-    currentClassIndex = classes.length-1;
-    loadCurrentClass();
-    ev.target.value='';
-  },300);
+  filePicker.value = '';
 });
 
-deleteClassBtn.addEventListener('click',()=>{
-  if(!confirm('Delete selected class?')) return;
-  let visibleClasses = classes.filter(c=>!c.hideFromSelector);
-  const toDelete = visibleClasses[classSelect.selectedIndex];
-  const index = classes.indexOf(toDelete);
-  if(index>=0) classes.splice(index,1);
-  currentClassIndex = 0;
-  loadCurrentClass();
-});
-
-openPSBtn.addEventListener('click',()=> window.open('https://hillelyeshiva.powerschool.com','_blank'));
-
+// Initial render
 renderRows();
 updateClassSelector();
 </script>
