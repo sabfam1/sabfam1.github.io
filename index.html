@@ -147,7 +147,7 @@ let classes = [];
 let currentClassIndex = 0;
 let assignments = [];
 
-// Demo class with blank name
+// Demo class
 classes.push({
   name: "",
   weights: {Test:60,Quiz:20,Classwork:10,Homework:10},
@@ -220,7 +220,6 @@ function updateClassSelector(){
       opt.textContent = displayName;
       classSelect.appendChild(opt);
     });
-    // Select current class if possible
     const idxInSelector = visibleClasses.indexOf(classes[currentClassIndex]);
     if(idxInSelector >=0) classSelect.selectedIndex = idxInSelector;
   } else {
@@ -228,14 +227,12 @@ function updateClassSelector(){
   }
 }
 
-// Switch class
 classSelect.addEventListener('change',()=>{
   let visibleClasses = classes.filter(c=>!c.hideFromSelector);
   currentClassIndex = classes.indexOf(visibleClasses[classSelect.selectedIndex]);
   loadCurrentClass();
 });
 
-// Load current class into UI
 function loadCurrentClass(){
   const c = classes[currentClassIndex];
   assignments = c.assignments.map(a=>({...a}));
@@ -248,7 +245,6 @@ function loadCurrentClass(){
   updateClassSelector();
 }
 
-// Add assignment
 document.getElementById('addBtn').addEventListener('click',()=>{
   assignments.push({name:'', category:'Classwork', score:'', pts:''});
   renderRows();
@@ -256,7 +252,7 @@ document.getElementById('addBtn').addEventListener('click',()=>{
   vib(14);
 });
 
-// Calculate grade
+// ✅ Calculate grade — blank scores are ignored
 document.getElementById('calcBtn').addEventListener('click',()=>{
   const weights = {
     Test: Number(document.getElementById('testW').value)/100,
@@ -265,26 +261,32 @@ document.getElementById('calcBtn').addEventListener('click',()=>{
     Homework: Number(document.getElementById('hwW').value)/100
   };
   const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
+  
   assignments.forEach(a=>{
     const c = a.category || 'Classwork';
-    const e = Number(a.score)||0;
-    const p = Number(a.pts)||0;
-    totals[c].e += e; totals[c].p += p;
+    if(a.score === '' || a.pts === '' || a.pts == 0) return; // skip blank or 0-pt assignments
+    const e = Number(a.score);
+    const p = Number(a.pts);
+    totals[c].e += e;
+    totals[c].p += p;
   });
-  let weighted=0,active=0;
+
+  let weighted=0, active=0;
   const parts = [];
   ['Test','Quiz','Classwork','Homework'].forEach(cat=>{
     const t = totals[cat];
-    const avg = t.p>0 ? (t.e/t.p)*100 : 0;
-    if(t.p>0){ weighted += avg*(weights[cat]||0); active += (weights[cat]||0); }
+    if(t.p === 0) return; // skip empty categories
+    const avg = (t.e / t.p) * 100;
+    weighted += avg * (weights[cat]||0);
+    active += (weights[cat]||0);
     parts.push(`${cat}: ${avg.toFixed(2)}% (${t.e}/${t.p})`);
   });
+
   const final = active>0 ? (weighted/active) : 0;
   resultEl.innerHTML = parts.join('<br>') + `<hr><strong>Final: ${final.toFixed(2)}%</strong>`;
   vib(12);
 });
 
-// Export
 document.getElementById('exportBtn').addEventListener('click',()=>{
   const c = classes[currentClassIndex];
   c.name = document.getElementById('className').value;
@@ -302,7 +304,6 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.click();
 });
 
-// Clear
 document.getElementById('clearBtn').addEventListener('click',()=>{
   if(!confirm('Clear all assignments and reset weights for this class?')) return;
   assignments = [];
@@ -314,7 +315,6 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
   resultEl.innerHTML = 'Cleared';
 });
 
-// Import
 document.getElementById('importBtn').addEventListener('click',()=> filePicker.click());
 filePicker.addEventListener('change', (ev)=>{
   const files = Array.from(ev.target.files);
@@ -342,7 +342,6 @@ filePicker.addEventListener('change', (ev)=>{
   },300);
 });
 
-// Delete class
 deleteClassBtn.addEventListener('click',()=>{
   if(!confirm('Delete selected class?')) return;
   let visibleClasses = classes.filter(c=>!c.hideFromSelector);
@@ -353,7 +352,6 @@ deleteClassBtn.addEventListener('click',()=>{
   loadCurrentClass();
 });
 
-// PowerSchool button
 openPSBtn.addEventListener('click',()=> window.open('https://hillelyeshiva.powerschool.com','_blank'));
 
 renderRows();
