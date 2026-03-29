@@ -43,8 +43,6 @@ button.remove{ width:40px; height:36px; border-radius:10px; border:none; backgro
 .seg button{ flex:1; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--text); font-weight:600; cursor:pointer; }
 .result{ margin-top:12px; color:var(--muted); font-size:14px }
 @media (max-width:380px){ .row, .header-row { grid-template-columns:46% 20% 12% 12% 10%; } }
-
-/* Class selector styling */
 .class-select {
   width: 100%;
   padding: 10px 12px;
@@ -79,7 +77,6 @@ button.remove{ width:40px; height:36px; border-radius:10px; border:none; backgro
   <h1>📘 Grade Engine</h1>
   <div class="spacer"></div>
 
-  <!-- Class selector container -->
   <div id="classSelectContainer" class="field" style="display:none;">
     <label for="classSelect">Select Class</label>
     <select id="classSelect" class="class-select"></select>
@@ -147,7 +144,7 @@ let classes = [];
 let currentClassIndex = 0;
 let assignments = [];
 
-// Demo class with blank name
+// Demo class
 classes.push({
   name: "",
   weights: {Test:60,Quiz:20,Classwork:10,Homework:10},
@@ -180,8 +177,8 @@ function renderRows(){
         <option ${a.category==='Classwork'?'selected':''}>Classwork</option>
         <option ${a.category==='Homework'?'selected':''}>Homework</option>
       </select>
-      <input class="score" data-i="${i}" data-field="score" type="number" min="0" inputmode="numeric" value="${a.score===undefined||a.score===null?'':a.score}" />
-      <input class="pts" data-i="${i}" data-field="pts" type="number" min="0" max="999" inputmode="numeric" value="${a.pts===undefined||a.pts===null?'':a.pts}" />
+      <input class="score" data-i="${i}" data-field="score" type="number" min="0" inputmode="numeric" value="${a.score===null||a.score===''?'':a.score}" />
+      <input class="pts" data-i="${i}" data-field="pts" type="number" min="0" max="999" inputmode="numeric" value="${a.pts===null||a.pts===''?'':a.pts}" />
       <div class="remove-wrap"><button class="remove" data-i="${i}">✕</button></div>
     `;
     rowsEl.appendChild(div);
@@ -194,7 +191,7 @@ function attachRowListeners(){
     el.oninput = ()=>{ 
       const i = Number(el.dataset.i); 
       const f = el.dataset.field;
-      assignments[i][f] = (f==='score'||f==='pts') ? (el.value===''?'':Number(el.value)) : el.value;
+      assignments[i][f] = (f==='score'||f==='pts') ? (el.value===''? '': Number(el.value)) : el.value;
     };
   });
   rowsEl.querySelectorAll('button.remove').forEach(btn=>{
@@ -220,7 +217,6 @@ function updateClassSelector(){
       opt.textContent = displayName;
       classSelect.appendChild(opt);
     });
-    // Select current class if possible
     const idxInSelector = visibleClasses.indexOf(classes[currentClassIndex]);
     if(idxInSelector >=0) classSelect.selectedIndex = idxInSelector;
   } else {
@@ -228,14 +224,12 @@ function updateClassSelector(){
   }
 }
 
-// Switch class
 classSelect.addEventListener('change',()=>{
   let visibleClasses = classes.filter(c=>!c.hideFromSelector);
   currentClassIndex = classes.indexOf(visibleClasses[classSelect.selectedIndex]);
   loadCurrentClass();
 });
 
-// Load current class into UI
 function loadCurrentClass(){
   const c = classes[currentClassIndex];
   assignments = c.assignments.map(a=>({...a}));
@@ -248,7 +242,6 @@ function loadCurrentClass(){
   updateClassSelector();
 }
 
-// Add assignment
 document.getElementById('addBtn').addEventListener('click',()=>{
   assignments.push({name:'', category:'Classwork', score:'', pts:''});
   renderRows();
@@ -256,7 +249,6 @@ document.getElementById('addBtn').addEventListener('click',()=>{
   vib(14);
 });
 
-// Calculate grade
 document.getElementById('calcBtn').addEventListener('click',()=>{
   const weights = {
     Test: Number(document.getElementById('testW').value)/100,
@@ -265,13 +257,15 @@ document.getElementById('calcBtn').addEventListener('click',()=>{
     Homework: Number(document.getElementById('hwW').value)/100
   };
   const totals = { Test:{e:0,p:0}, Quiz:{e:0,p:0}, Classwork:{e:0,p:0}, Homework:{e:0,p:0} };
+
   assignments.forEach(a=>{
     const c = a.category || 'Classwork';
-    const e = a.score===''||a.score==null ? null : Number(a.score);
-    const p = a.pts===''||a.pts==null ? null : Number(a.pts);
-    if(e!==null && p!==null) { totals[c].e += e; totals[c].p += p; }
+    const e = (a.score === '' || a.score === null || a.score === undefined) ? null : Number(a.score);
+    const p = (a.pts === '' || a.pts === null || a.pts === undefined) ? null : Number(a.pts);
+    if(e !== null && p !== null) { totals[c].e += e; totals[c].p += p; }
   });
-  let weighted=0,active=0;
+
+  let weighted=0, active=0;
   const parts = [];
   ['Test','Quiz','Classwork','Homework'].forEach(cat=>{
     const t = totals[cat];
@@ -284,7 +278,6 @@ document.getElementById('calcBtn').addEventListener('click',()=>{
   vib(12);
 });
 
-// Export
 document.getElementById('exportBtn').addEventListener('click',()=>{
   const c = classes[currentClassIndex];
   c.name = document.getElementById('className').value;
@@ -302,7 +295,6 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.click();
 });
 
-// Clear
 document.getElementById('clearBtn').addEventListener('click',()=>{
   if(!confirm('Clear all assignments and reset weights for this class?')) return;
   assignments = [];
@@ -314,7 +306,6 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
   resultEl.innerHTML = 'Cleared';
 });
 
-// Import
 document.getElementById('importBtn').addEventListener('click',()=> filePicker.click());
 filePicker.addEventListener('change', (ev)=>{
   const files = Array.from(ev.target.files);
@@ -324,28 +315,37 @@ filePicker.addEventListener('change', (ev)=>{
       try{
         let data = JSON.parse(e.target.result);
         if(!Array.isArray(data.assignments)) data.assignments = [];
-        let newClass = {
+        const newClass = {
           name: data.name || '',
           weights: data.weights || {Test:60,Quiz:20,Classwork:10,Homework:10},
           assignments: data.assignments.map(a=>({
             ...a,
-            score: a.score===null ? '' : a.score,
-            pts: a.pts===null ? '' : a.pts
+            score: (a.score===null || a.score===undefined) ? '' : a.score,
+            pts: (a.pts===null || a.pts===undefined) ? '' : a.pts
           })),
           hideFromSelector:false
         };
         classes.push(newClass);
         currentClassIndex = classes.length-1;
         loadCurrentClass();
-        vib(20);
-      }catch(err){ alert('Invalid JSON'); console.error(err); }
+      } catch(err){ alert('Invalid JSON file'); }
     };
     reader.readAsText(f);
   });
   filePicker.value = '';
 });
 
-// Initial render
+deleteClassBtn.addEventListener('click',()=>{
+  if(confirm('Delete this class?')){
+    classes.splice(currentClassIndex,1);
+    currentClassIndex = 0;
+    loadCurrentClass();
+    updateClassSelector();
+  }
+});
+
+openPSBtn.addEventListener('click',()=> window.open('https://powerschool.com','_blank'));
+
 renderRows();
 updateClassSelector();
 </script>
